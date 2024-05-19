@@ -31,7 +31,9 @@ public:
 	void recv_file(SOCKET sock);
 
 	void connect_server(std::string ip, int port, QString filePath);;
-	void send_file(SOCKET sock, QString filePath);
+	//void send_file(SOCKET sock, QString filePath);
+	void send_file(SOCKET sock, QString filePath, std::wstring fileInfo);
+
 
 	void set_file_dst(const QString& val);
 

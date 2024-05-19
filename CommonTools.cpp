@@ -20,9 +20,9 @@ std::wstring getFileInfo(QString filePath)
 	if (!fileName.size())
 		return L"";
 
-	//md5Value = getHashValue(filePath);			// 校验文件hash
-	//if (!md5Value.size())
-	//	return L"";
+	md5Value = getHashValue(filePath);			// 校验文件hash
+	if (!md5Value.size())
+		return L"";
 
 	std::wstring wsfileSize = std::to_wstring(fileSize);
 	return fileName + L":" + wsfileSize + L":" + md5Value;
@@ -60,45 +60,48 @@ std::wstring getFileName(QString filePath)
 }
 
 
-std::pair<std::wstring, long long> fileInfoTrans(const wchar_t* wbuf)
-{
-	std::pair <std::wstring, long long> result;
-	std::wstring wstr(wbuf);
-	
-	size_t pos = wstr.find(L":");
-	if (pos == std::wstring::npos) {
-		EDEBUG("file info trans failed");
-		return result;
-	}
-
-	result.first = std::wstring(wstr.substr(0, pos));
-	
-	long long temp = std::stoll(wstr.substr(pos + 1, wstr.size() - 1));
-	result.second = temp;
-	return result;
-}
-
-
-
-
-//std::vector<std::wstring> fileInfoTrans(const wchar_t* wbuf)
+//std::pair<std::wstring, long long> fileInfoTrans(const wchar_t* wbuf)
 //{
-//	std::vector<std::wstring> tokens;
-//	std::wstring delimiter = L":";
+//	std::pair <std::wstring, long long> result;
 //	std::wstring wstr(wbuf);
-//	std::size_t start = 0;
-//	std::size_t end = wstr.find(delimiter);
-//
-//	while (end != std::wstring::npos) {
-//		tokens.push_back(wstr.substr(start, end - start));
-//		start = end + 1;
-//		end = wstr.find(delimiter, start);
+//	
+//	size_t pos = wstr.find(L":");
+//	if (pos == std::wstring::npos) {
+//		EDEBUG("file info trans failed");
+//		return result;
 //	}
 //
-//	tokens.push_back(wstr.substr(start));
-//
-//	return tokens;
+//	result.first = std::wstring(wstr.substr(0, pos));
+//	
+//	long long temp = std::stoll(wstr.substr(pos + 1, wstr.size() - 1));
+//	result.second = temp;
+//	return result;
 //}
+
+
+
+
+std::vector<std::wstring> fileInfoTrans(const wchar_t* wbuf)
+{
+	std::vector<std::wstring> tokens;
+	std::wstring wstr(wbuf);
+	std::wstring delimiter = L":";
+
+	size_t start = 0;
+	size_t end = wstr.find(delimiter, start);
+
+	while (end != std::wstring::npos) {
+		tokens.push_back(wstr.substr(start, end - start));
+		start = end + 1;
+		end = wstr.find(delimiter, start);
+	}
+
+	if (start < wstr.length()) {
+		tokens.push_back(wstr.substr(start));
+	}
+
+	return tokens;
+}
 
 /// @brief 计算文件sha256值，用于文件完整性校验
 /// @param filePath 文件路径

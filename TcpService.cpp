@@ -160,19 +160,20 @@ void TcpService::recv_file(SOCKET sock)
 		return;
 	}
 
-	//const wchar_t* wbuf = reinterpret_cast<const wchar_t*>(buf);
-	//auto fileVec = fileInfoTrans(wbuf);
-	//std::wstring fileName = fileDst.toStdWString() + L"\\" + fileVec[0];
-	//unsigned long long fileSize = std::stoull(fileVec[1]);
-	//EDEBUG(fileSize);
-	//MessageQueue::GetInstance().push(L"收到文件:" + fileVec[0]);
-
 	const wchar_t* wbuf = reinterpret_cast<const wchar_t*>(buf);
-	auto filePair = fileInfoTrans(wbuf);
-	std::wstring fileName = fileDst.toStdWString() + L"\\" + filePair.first;
-	unsigned long long fileSize = filePair.second;
+	auto fileVec = fileInfoTrans(wbuf);
+	std::wstring fileName = fileDst.toStdWString() + L"\\" + fileVec[0];
+	unsigned long long fileSize = std::stoull(fileVec[1]);
 	EDEBUG(fileSize);
-	MessageQueue::GetInstance().push(L"收到文件:" + filePair.first);
+	MessageQueue::GetInstance().push(L"收到文件:" + fileVec[0]);
+	std::wstring recvMd5 = fileVec[2];			//这是文件的md5值
+
+	//const wchar_t* wbuf = reinterpret_cast<const wchar_t*>(buf);
+	//auto filePair = fileInfoTrans(wbuf);
+	//std::wstring fileName = fileDst.toStdWString() + L"\\" + filePair.first;
+	//unsigned long long fileSize = filePair.second;
+	//EDEBUG(fileSize);
+	//MessageQueue::GetInstance().push(L"收到文件:" + filePair.first);
 
 
 	CREATEFILE2_EXTENDED_PARAMETERS params;
@@ -249,6 +250,17 @@ void TcpService::recv_file(SOCKET sock)
 
 	closesocket(sock);
 
+	std::wstring localMd5 = getHashValue(QString::fromStdWString(fileName));
+	if (recvMd5 != localMd5) {
+		MessageQueue::GetInstance().push(L"文件校验失败:" + fileVec[0]);
+		if (DeleteFile(fileName.c_str())) {
+			MessageQueue::GetInstance().push(L"文件已经被删除");
+		}
+		else {
+			MessageQueue::GetInstance().push(L"文件删除失败，请手动删除");
+		}
+	}
+
 	EDEBUG("end file recv");
 
 	//std::fstream outFile;
@@ -282,11 +294,15 @@ void TcpService::connect_server(std::string ip, int port, QString filePath)
 {
 	EDEBUG("try to connect to server");
 
-	ULONGLONG temp_fileSize = getFileSize(filePath);
+	/*ULONGLONG temp_fileSize = getFileSize(filePath);
 	if (temp_fileSize < 0) {
 		MessageQueue::GetInstance().push(filePath.toStdWString() + L"文件存在问题，无法发送");
 		return;
-	}
+	}*/
+
+	std::wstring fileInfo = getFileInfo(filePath);
+	if (!fileInfo.size())
+		return;
 
 	int ret = 0;
 	SOCKET sock = INVALID_SOCKET;
@@ -309,33 +325,19 @@ void TcpService::connect_server(std::string ip, int port, QString filePath)
 
 	EDEBUG("connect to server success");
 
-	send_file(sock, filePath);
+	send_file(sock, filePath, fileInfo);
 
 	shutdown(sock, SD_SEND);	
 	closesocket(sock);
 	EDEBUG("end socket task, close it");
 }
 
-void TcpService::send_file(SOCKET sock, QString filePath)
+void TcpService::send_file(SOCKET sock, QString filePath, std::wstring fileInfo)
 {
 
 	int ret = 0;
 	char buf[DATABUFLEN];
 	memset(buf, 0, DATABUFLEN);
-
-	/*int mag = sizeof(wchar_t) / sizeof(char);
-	std::wstring fileInfo = getFileInfo(filePath);
-	if (!fileInfo.size()) {
-		EDEBUG("get file info failed");
-		return;
-	}
-	memcpy(buf, fileInfo.c_str(), fileInfo.size() * mag);
-
-	ret = send(sock, buf, DATABUFLEN, 0);
-	if (ret == SOCKET_ERROR) {
-		ESDEBUG("send file failed", WSAGetLastError())
-		return;
-	}*/
 
 	//TODO: 补充内存映射部分
 	HANDLE hFile = CreateFile(filePath.toStdWString().c_str(),
@@ -374,14 +376,6 @@ void TcpService::send_file(SOCKET sock, QString filePath)
 
 
 	int mag = sizeof(wchar_t) / sizeof(char);
-	std::wstring fileInfo = getFileInfo(filePath);
-	if (fileInfo == L"") {
-		EDEBUG("get file info failed");
-		UnmapViewOfFile(lpFileBase);
-		CloseHandle(hFileMapping);
-		CloseHandle(hFile);
-		return;
-	}
 	memcpy(buf, fileInfo.c_str(), fileInfo.size() * mag);
 
 	ret = send(sock, buf, DATABUFLEN, 0);

@@ -19,6 +19,6 @@
 std::wstring getFileInfo(QString filePath);
 unsigned long long getFileSize(QString filePath);
 std::wstring getFileName(QString filePath);
-std::pair<std::wstring, long long> fileInfoTrans(const wchar_t* wbuf);
-//std::vector<std::wstring> fileInfoTrans(const wchar_t* wbuf);
+//std::pair<std::wstring, long long> fileInfoTrans(const wchar_t* wbuf);
+std::vector<std::wstring> fileInfoTrans(const wchar_t* wbuf);
 std::wstring getHashValue(QString filePath);
