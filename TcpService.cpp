@@ -160,12 +160,19 @@ void TcpService::recv_file(SOCKET sock)
 		return;
 	}
 
+	//const wchar_t* wbuf = reinterpret_cast<const wchar_t*>(buf);
+	//auto fileVec = fileInfoTrans(wbuf);
+	//std::wstring fileName = fileDst.toStdWString() + L"\\" + fileVec[0];
+	//unsigned long long fileSize = std::stoull(fileVec[1]);
+	//EDEBUG(fileSize);
+	//MessageQueue::GetInstance().push(L"收到文件:" + fileVec[0]);
+
 	const wchar_t* wbuf = reinterpret_cast<const wchar_t*>(buf);
-	auto file_pair = fileInfoTrans(wbuf);
-	std::wstring fileName = fileDst.toStdWString() + L"\\" + file_pair.first;
-	long long fileSize = file_pair.second;
+	auto filePair = fileInfoTrans(wbuf);
+	std::wstring fileName = fileDst.toStdWString() + L"\\" + filePair.first;
+	unsigned long long fileSize = filePair.second;
 	EDEBUG(fileSize);
-	MessageQueue::GetInstance().push(L"收到文件:" + file_pair.first);
+	MessageQueue::GetInstance().push(L"收到文件:" + filePair.first);
 
 
 	CREATEFILE2_EXTENDED_PARAMETERS params;
@@ -316,6 +323,20 @@ void TcpService::send_file(SOCKET sock, QString filePath)
 	char buf[DATABUFLEN];
 	memset(buf, 0, DATABUFLEN);
 
+	/*int mag = sizeof(wchar_t) / sizeof(char);
+	std::wstring fileInfo = getFileInfo(filePath);
+	if (!fileInfo.size()) {
+		EDEBUG("get file info failed");
+		return;
+	}
+	memcpy(buf, fileInfo.c_str(), fileInfo.size() * mag);
+
+	ret = send(sock, buf, DATABUFLEN, 0);
+	if (ret == SOCKET_ERROR) {
+		ESDEBUG("send file failed", WSAGetLastError())
+		return;
+	}*/
+
 	//TODO: 补充内存映射部分
 	HANDLE hFile = CreateFile(filePath.toStdWString().c_str(),
 		GENERIC_READ,
@@ -354,7 +375,7 @@ void TcpService::send_file(SOCKET sock, QString filePath)
 
 	int mag = sizeof(wchar_t) / sizeof(char);
 	std::wstring fileInfo = getFileInfo(filePath);
-	if (fileInfo == L" ") {
+	if (fileInfo == L"") {
 		EDEBUG("get file info failed");
 		UnmapViewOfFile(lpFileBase);
 		CloseHandle(hFileMapping);
