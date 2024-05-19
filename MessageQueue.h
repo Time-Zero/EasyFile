@@ -6,6 +6,7 @@
 #include <atomic>
 #include <qstring.h>
 
+/// @brief 一个简易的消息队列，不严谨的生产者消费者模型
 class MessageQueue
 {
 public:

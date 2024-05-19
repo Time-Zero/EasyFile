@@ -7,6 +7,8 @@
 #include <queue>
 #include <thread>
 #include <vector>
+
+/// @brief 线程池，用于发送文件
 class ThreadPool {
 public:
     using Task = std::packaged_task<void()>;

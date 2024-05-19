@@ -1,5 +1,6 @@
 ﻿#include "TcpService.h"
 
+/// @brief 构造函数
 TcpService::TcpService() :
 	stop_(true),
 	file_count_(0),
@@ -18,6 +19,7 @@ TcpService::TcpService() :
 	send_progress_update();
 }
 
+/// @brief 析构函数
 TcpService::~TcpService()
 {
 	EDEBUG("Tcp Service destruct");
@@ -26,6 +28,8 @@ TcpService::~TcpService()
 	WSACleanup();
 }
 
+/// @brief 启动accept监听
+/// @param port 监听的端口
 void TcpService::accept_start(int port)
 {
 	if (!stop_.load())
@@ -122,6 +126,7 @@ void TcpService::accept_start(int port)
 
 }
 
+/// @brief 关闭accpet监听
 void TcpService::accept_stop()
 {
 	EDEBUG("try to stop accept service")
@@ -133,6 +138,9 @@ void TcpService::accept_stop()
 	stop_.store(true);
 }
 
+
+/// @brief 接受处理
+/// @param sock 从哪个socket中读取文件
 void TcpService::recv_file(SOCKET sock)
 {
 	EDEBUG("recv file submode start");
@@ -290,6 +298,10 @@ void TcpService::recv_file(SOCKET sock)
 	//EDEBUG("recv file end");
 }
 
+/// @brief 连接到server端
+/// @param ip sever端ip
+/// @param port server端端口
+/// @param filePath 待发送的文件
 void TcpService::connect_server(std::string ip, int port, QString filePath)
 {
 	EDEBUG("try to connect to server");
@@ -332,6 +344,10 @@ void TcpService::connect_server(std::string ip, int port, QString filePath)
 	EDEBUG("end socket task, close it");
 }
 
+/// @brief 发送文件
+/// @param sock 发送使用的socket
+/// @param filePath 发送文件的路径
+/// @param fileInfo 发送文件信息
 void TcpService::send_file(SOCKET sock, QString filePath, std::wstring fileInfo)
 {
 
@@ -411,6 +427,8 @@ void TcpService::send_file(SOCKET sock, QString filePath, std::wstring fileInfo)
 	--file_count_;
 }
 
+/// @brief 设置文件保存位置
+/// @param val 文件保存位置
 void TcpService::set_file_dst(const QString& val)
 {
 	this->fileDst = val;

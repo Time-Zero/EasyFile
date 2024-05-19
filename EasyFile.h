@@ -24,7 +24,7 @@ public:
     ~EasyFile();
 
 public:
-    void on_click_accept_start();
+    void on_click_accept_start();  
     void on_click_accpet_stop();
     void on_click_connect_service();
 

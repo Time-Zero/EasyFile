@@ -38,7 +38,7 @@ public:
 	void set_file_dst(const QString& val);
 
 signals:
-	void progressBarValueUpdate(int);
+	void progressBarValueUpdate(int);				//信号，用于刷新progressbar
 
 private:
 	void send_progress_update();

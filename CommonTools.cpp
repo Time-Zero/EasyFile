@@ -79,8 +79,9 @@ std::wstring getFileName(QString filePath)
 //}
 
 
-
-
+/// @brief 解析发送来的文件头
+/// @param wbuf 待解析的文件头
+/// @return vec[0]文件名;vec[1]文件大小;vec[2]文件md5校验值
 std::vector<std::wstring> fileInfoTrans(const wchar_t* wbuf)
 {
 	std::vector<std::wstring> tokens;
