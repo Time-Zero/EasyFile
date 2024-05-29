@@ -109,6 +109,7 @@ std::vector<std::wstring> fileInfoTrans(const wchar_t* wbuf)
 /// @return wstring保存的sha256校验值 
 std::wstring getHashValue(QString filePath)
 {
+	MessageQueue::GetInstance().push("正在计算hash值");
 	QFile file(filePath);
 	std::wstring res = L"";
 	if (!file.open(QIODevice::ReadOnly)) {
@@ -127,5 +128,6 @@ std::wstring getHashValue(QString filePath)
 	QByteArray hashValue = hash.result();
 	QString qsData(hashValue);
 	res = qsData.toStdWString();
+	MessageQueue::GetInstance().push("计算hash值成功");
 	return res;
 }

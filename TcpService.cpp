@@ -258,6 +258,7 @@ void TcpService::recv_file(SOCKET sock)
 
 	closesocket(sock);
 
+	MessageQueue::GetInstance().push("文件接受完毕，正在验证hash值");
 	std::wstring localMd5 = getHashValue(QString::fromStdWString(fileName));
 	if (recvMd5 != localMd5) {
 		MessageQueue::GetInstance().push(L"文件校验失败:" + fileVec[0]);

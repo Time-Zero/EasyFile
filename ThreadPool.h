@@ -29,15 +29,19 @@ public:
     template <class F, class... Args>
     auto commit(F&& f, Args&&... args) -> std::future<decltype(f(args...))> {
         using RetType = decltype(f(args...));
+
         if (stop_.load())
             return std::future<RetType>{};
+        
         auto task = std::make_shared<std::packaged_task<RetType()>>(
             std::bind(std::forward<F>(f), std::forward<Args>(args)...));
         std::future<RetType> ret = task->get_future();
+        
         {
             std::lock_guard<std::mutex> cv_mt(cv_mt_);
             tasks_.emplace([task] { (*task)(); });
         }
+        
         cv_lock_.notify_one();
         return ret;
     }
